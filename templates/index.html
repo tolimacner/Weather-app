@@ -7,17 +7,23 @@
     <title>Weather App</title>
 </head>
 <body>
-    <h1>Weather App</h1>
-    <form action="/weather" method="post">
-        <label for="city">Enter city name:</label>
+    <h1>Simple Weather App</h1>
+
+    <form action="/weather" method="POST">
+        <label for="city">Enter City:</label>
         <input type="text" id="city" name="city" required>
         <button type="submit">Get Weather</button>
     </form>
-    {% if city %}
-        <h2>Weather in {{ city }}</h2>
-        <p>Temperature: {{ temperature }}°C</p>
-        <p>Description: {{ description }}</p>
-    {% elif error %}
+
+    <!-- Display weather information if available -->
+    {% if weather %}
+        <h2>Weather in {{ weather.city }}</h2>
+        <p>Temperature: {{ weather.temp }}°C</p>
+        <p>Description: {{ weather.description }}</p>
+    {% endif %}
+
+    <!-- Display error message if available -->
+    {% if error %}
         <p style="color: red;">{{ error }}</p>
     {% endif %}
 </body>

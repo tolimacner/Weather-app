@@ -1,9 +1,26 @@
-# app/main.py
-from flask import render_template, request
-from app.weather import fetch_weather
-from app import create_app
+import sys
+import os
+from dotenv import load_dotenv
+from flask import Flask, render_template, request
 
-app = create_app()
+# Load the .env file
+load_dotenv()
+
+# Now you can access the API key from the environment
+api_key = os.getenv('OPENWEATHERMAP_API_KEY')
+
+# Print the API key to verify it's loaded correctly (for debugging purposes)
+print(f"Loaded API key: {api_key}")
+
+# Add the project root to the system path
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+# Now import the weather fetch function
+from app.weather import fetch_weather
+
+# Explicitly set the template folder path
+template_path = os.path.abspath('../Weather-app/templates')
+app = Flask(__name__, template_folder=template_path)
 
 @app.route('/')
 def index():
@@ -13,18 +30,13 @@ def index():
 def weather():
     city = request.form.get('city')
     if not city:
-        return render_template('index.html', error="Please enter a city name")
+        return render_template('index.html', error="Please enter a city name.")
     
-    data = fetch_weather(city)
-
-    if data.get('cod') != 200:
-        return render_template('index.html', error=data.get('message'))
-
-    city_name = data.get('name')
-    temp = data.get('main', {}).get('temp')
-    description = data.get('weather', [{}])[0].get('description')
-
-    return render_template('index.html', city=city_name, temperature=temp, description=description)
+    weather_data, error_message = fetch_weather(city)
+    if weather_data:
+        return render_template('index.html', weather=weather_data)
+    else:
+        return render_template('index.html', error=error_message)
 
 if __name__ == '__main__':
     app.run(debug=True)
