@@ -34,7 +34,7 @@ Before running the application, ensure you have the following installed:
 ### 1. Clone the repository:
 
 ```bash
-git clone https://github.com/yourusername/weather-app.git
+git clone https://github.com/tolimacner/Weather-app.git
 cd weather-app
 ```
 
