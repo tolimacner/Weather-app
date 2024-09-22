@@ -12,15 +12,15 @@ This is a simple weather application built with Flask that fetches real-time wea
 ```
 weather-app/
 ├── app/
-│   ├── __init__.py        # Marks the app directory as a package
-│   ├── main.py            # Flask application code
-│   └── weather.py         # Code for fetching weather data from OpenWeatherMap
+│   ├── __init__.py        
+│   ├── main.py            
+│   └── weather.py         
 ├── templates/
-│   └── index.html         # HTML template for the web interface
-├── Dockerfile             # Dockerfile for containerizing the application
-├── requirements.txt       # Python dependencies
-├── .env                   # Environment file for storing API keys (not included in repository)
-└── README.md              # This file
+│   └── index.html         
+├── Dockerfile             
+├── requirements.txt       
+├── .env                   
+└── README.md              
 ```
 
 ## Prerequisites
