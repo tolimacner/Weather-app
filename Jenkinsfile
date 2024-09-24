@@ -3,35 +3,23 @@ pipeline {
 
     environment {
         DOCKER_IMAGE = 'tolimacner/weather-app'
-        API_KEY = credentials('OPENWEATHERMAP_API_KEY')  // Jenkins credential for API key
+        API_KEY = credentials('OPENWEATHERMAP_API_KEY') // Keep this as your API key is sensitive
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the code from the branch being built
-                git branch: 'feature-branch', url: 'https://github.com/tolimacner/weather-app.git'
+                // Checkout the feature branch, no credentials needed for public repo
+                git branch: 'feature/add-weather-feature', url: 'https://github.com/tolimacner/Weather-app.git'
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build') {
             steps {
                 // Build the Docker image
                 sh 'docker build -t $DOCKER_IMAGE .'
             }
         }
-    }
-
-    post {
-        always {
-            // Clean up after the build
-            sh 'docker system prune -f'
-        }
-        success {
-            echo 'Docker image built successfully!'
-        }
-        failure {
-            echo 'Pipeline failed. Please check logs.'
-        }
+        // Additional stages as needed...
     }
 }
