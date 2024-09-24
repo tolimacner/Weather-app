@@ -1,4 +1,3 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,22 +7,30 @@
 </head>
 <body>
     <h1>Weather App</h1>
+    <form action="/weather" method="post">
+        <label for="city">Enter city name:</label>
+        <input type="text" id="city" name="city">
 
-    <form action="/weather" method="POST">
-        <label for="city">Enter City:</label>
-        <input type="text" id="city" name="city" required>
+        <br><br>
+
+        <label for="zip_code">Or enter ZIP code:</label>
+        <input type="text" id="zip_code" name="zip_code">
+
+        <br><br>
+
+        <label for="country_code">Country code (optional):</label>
+        <input type="text" id="country_code" name="country_code">
+
+        <br><br>
+
         <button type="submit">Get Weather</button>
     </form>
 
-    <!-- Display weather information if available -->
     {% if weather %}
         <h2>Weather in {{ weather.city }}</h2>
         <p>Temperature: {{ weather.temp }}°C</p>
         <p>Description: {{ weather.description }}</p>
-    {% endif %}
-
-    <!-- Display error message if available -->
-    {% if error %}
+    {% elif error %}
         <p style="color: red;">{{ error }}</p>
     {% endif %}
 </body>
