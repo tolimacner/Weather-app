@@ -23,15 +23,15 @@ pipeline {
 
         stage('Test') {
             steps {
-                // Run tests inside the Docker container
-                sh 'docker run --rm -e OPENWEATHERMAP_API_KEY=$API_KEY $DOCKER_IMAGE pytest tests/'
+                // Run tests inside the Docker container without removing it after execution
+                sh 'docker run -e OPENWEATHERMAP_API_KEY=$API_KEY $DOCKER_IMAGE pytest tests/'
             }
         }
     }
 
     post {
         always {
-            // Always clean up the Docker images after the job
+            // Clean up Docker system (you can comment this out temporarily if needed)
             sh 'docker system prune -f'
         }
     }
