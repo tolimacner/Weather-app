@@ -23,15 +23,15 @@ pipeline {
 
         stage('Test') {
             steps {
-                // Run tests inside the Docker container, specifying the correct path to the test file
-                sh 'docker run -e OPENWEATHERMAP_API_KEY=$API_KEY $DOCKER_IMAGE pytest app/tests/test_weather.py'
+                // Set PYTHONPATH and run the tests
+                sh 'docker run -e OPENWEATHERMAP_API_KEY=$API_KEY -e PYTHONPATH=/app $DOCKER_IMAGE pytest app/tests/test_weather.py'
             }
         }
     }
 
     post {
         always {
-            // Clean up Docker system (you can comment this out temporarily if needed)
+            // Clean up Docker system (optional)
             sh 'docker system prune -f'
         }
     }
