@@ -29,7 +29,7 @@ pipeline {
         }
     }
 
-    post {
+   # post {
         always {
             // Clean up Docker system (you can comment this out temporarily if needed)
             sh 'docker system prune -f'
