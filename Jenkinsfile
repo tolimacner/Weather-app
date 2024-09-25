@@ -23,9 +23,16 @@ pipeline {
 
         stage('Test') {
             steps {
-                // Sleep to keep the container alive for 5 minutes before running the tests
-                sh 'docker run -d -e OPENWEATHERMAP_API_KEY=$API_KEY $DOCKER_IMAGE sleep 300 && docker exec $(docker ps -q -f ancestor=$DOCKER_IMAGE) pytest tests/'
+                // Run tests inside the Docker container, specifying the correct path to the test file
+                sh 'docker run -e OPENWEATHERMAP_API_KEY=$API_KEY $DOCKER_IMAGE pytest app/tests/test_weather.py'
             }
+        }
+    }
+
+    post {
+        always {
+            // Clean up Docker system (you can comment this out temporarily if needed)
+            sh 'docker system prune -f'
         }
     }
 }
