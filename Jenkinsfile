@@ -71,6 +71,9 @@ pipeline {
                     git push origin feature/add-weather-feature
                     gh pr create --title "Auto-generated Pull Request" --body "Pull request created automatically by Jenkins." --base main --head feature/add-weather-feature
                     '''
+                }
+            }
+        }
     }
 
     post {
