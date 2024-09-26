@@ -2,72 +2,59 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'tolimacner/weather-app'   // Your Docker image name
-        DOCKER_TAG = "${env.BUILD_NUMBER}"        // Tag Docker image with build number
-        API_KEY = credentials('OPENWEATHERMAP_API_KEY')  // Sensitive API key for tests
-        DOCKER_USERNAME = 'your-dockerhub-username'   // DockerHub Username
-        DOCKER_PASSWORD = credentials('docker-hub-password')  // DockerHub Password stored as secret in Jenkins
+        DOCKER_IMAGE = 'tolimacner/weather-app'  // Your Docker image name
+        DOCKER_TAG = 'latest'                   // Pull the latest image
+        APP_SERVER = 'your-app-server-ip'       // IP address or hostname of your app server
+        SSH_USER = 'ubuntu'                     // SSH user for app server
+        DOCKER_USERNAME = 'tolimacner'          // DockerHub Username
+        DOCKER_PASSWORD = credentials('docker-hub-password')  // DockerHub Password stored in Jenkins
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                // Checkout the feature branch from a public repo
-                git branch: 'feature/add-weather-feature', url: 'https://github.com/tolimacner/Weather-app.git'
-            }
-        }
-
-        stage('Build') {
-            steps {
-                // Build the Docker image
-                sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                // Run tests inside the Docker container
-                sh 'docker run --rm -e OPENWEATHERMAP_API_KEY=$API_KEY $DOCKER_IMAGE:$DOCKER_TAG pytest tests/'
-            }
-        }
-
-        stage('Push to Docker Hub') {
-            steps {
-                // Authenticate and push Docker image
-                sh '''
-                echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                docker push $DOCKER_IMAGE:$DOCKER_TAG
-                '''
-            }
-        }
-
-        stage('Create Pull Request') {
+        stage('Pull Latest Docker Image') {
             steps {
                 script {
-                    // Push the branch back to GitHub and create a pull request
-                    sh '''
-                    git config --global user.email "you@example.com"
-                    git config --global user.name "Your Name"
-                    git add .
-                    git commit -m "Auto-commit from Jenkins"
-                    git push origin feature/add-weather-feature
-                    gh pr create --title "Auto-generated Pull Request" --body "Pull request created automatically by Jenkins." --base main --head feature/add-weather-feature
-                    '''
+                    // Login to DockerHub and pull the latest Docker image
+                    sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                    sh "docker pull $DOCKER_IMAGE:$DOCKER_TAG"
+                }
+            }
+        }
+
+        stage('Deploy to App Server') {
+            steps {
+                script {
+                    // Use SSH to connect to the app server and stop the old container, then start the new one
+                    sh """
+                    ssh -o StrictHostKeyChecking=no $SSH_USER@$APP_SERVER '
+                        docker stop weather-app || true
+                        docker rm weather-app || true
+                        docker pull $DOCKER_IMAGE:$DOCKER_TAG
+                        docker run -d --name weather-app -p 5000:5000 $DOCKER_IMAGE:$DOCKER_TAG
+                    '
+                    """
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                // Optional: Perform a simple check to verify the new version is running
+                script {
+                    sh """
+                    curl http://$APP_SERVER:5000/health || exit 1
+                    """
                 }
             }
         }
     }
 
     post {
-        always {
-            // Clean up Docker images after the job
-            sh 'docker system prune -f'
-        }
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Deployment to production completed successfully.'
         }
         failure {
-            echo 'Pipeline failed!'
+            echo 'Deployment to production failed!'
         }
     }
 }
