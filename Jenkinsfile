@@ -43,7 +43,7 @@ pipeline {
         stage('Test') {
             steps {
                 // Run tests inside the Docker container
-                sh 'docker run -e OPENWEATHERMAP_API_KEY=$API_KEY -e PYTHONPATH=/app $DOCKER_IMAGE pytest app/tests/test_weather.py'
+                sh 'docker run -e OPENWEATHERMAP_API_KEY=$API_KEY -e PYTHONPATH=/app $DOCKER_IMAGE:$DOCKER_TAG pytest app/tests/test_weather.py'
             }
         }
 
@@ -62,13 +62,8 @@ pipeline {
         stage('Create Pull Request') {
             steps {
                 script {
-                    // Push the branch back to GitHub and create a pull request
+                    // Create the pull request from the feature branch to the main branch
                     sh '''
-                    git config --global user.email "tmacner@itset.co.il"
-                    git config --global user.name "tolimacner"
-                    git add .
-                    git commit -m "Auto-commit from Jenkins"
-                    git push origin feature/add-weather-feature
                     gh pr create --title "Auto-generated Pull Request" --body "Pull request created automatically by Jenkins." --base main --head feature/add-weather-feature
                     '''
                 }
