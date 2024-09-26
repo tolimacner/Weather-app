@@ -2,16 +2,16 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'tolimacner/weather-app'   // Docker image name
+        DOCKER_IMAGE = 'tolimacner/weather-app'   // Your Docker image name
         API_KEY = credentials('OPENWEATHERMAP_API_KEY')  // Sensitive API key for tests
         DOCKER_USERNAME = 'tolimacner'   // DockerHub Username
-        DOCKER_PASSWORD = credentials('docker-hub-password')  // DockerHub Password stored in Jenkins
+        DOCKER_PASSWORD = credentials('docker-hub-password')  // DockerHub Password stored as secret in Jenkins
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the feature branch from the public GitHub repo
+                // Checkout the feature branch
                 git branch: 'feature/add-weather-feature', url: 'https://github.com/tolimacner/Weather-app.git'
             }
         }
@@ -19,15 +19,15 @@ pipeline {
         stage('Get Latest Docker Version') {
             steps {
                 script {
-                    // Fetch the latest version tag from DockerHub
+                    // Fetch the latest tag from DockerHub using the v2 API
                     def latestVersion = sh(script: '''
-                        curl -s https://registry.hub.docker.com/v1/repositories/tolimacner/weather-app/tags | jq -r '.[].name' | sort -V | tail -n 1
+                        curl -s https://hub.docker.com/v2/repositories/tolimacner/weather-app/tags/ | jq -r '.results[].name' | sort -V | tail -n 1
                     ''', returnStdout: true).trim()
-
+                    
                     // Extract the version number and increment it
                     def newVersion = latestVersion.replaceAll('ver', '').toInteger() + 1
                     env.DOCKER_TAG = "ver${newVersion}"
-
+                    
                     echo "New Docker tag: ${env.DOCKER_TAG}"
                 }
             }
@@ -50,8 +50,10 @@ pipeline {
         stage('Push Docker Image to DockerHub') {
             steps {
                 script {
-                    // Log in to DockerHub and push the new image
+                    // Login to DockerHub
                     sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+
+                    // Push the Docker image
                     sh 'docker push $DOCKER_IMAGE:$DOCKER_TAG'
                 }
             }
@@ -60,7 +62,7 @@ pipeline {
         stage('Create Pull Request') {
             steps {
                 script {
-                    // Create a pull request to the main branch using GitHub CLI
+                    // Push the branch back to GitHub and create a pull request
                     sh '''
                     git config --global user.email "you@example.com"
                     git config --global user.name "Your Name"
@@ -69,9 +71,6 @@ pipeline {
                     git push origin feature/add-weather-feature
                     gh pr create --title "Auto-generated Pull Request" --body "Pull request created automatically by Jenkins." --base main --head feature/add-weather-feature
                     '''
-                }
-            }
-        }
     }
 
     post {
