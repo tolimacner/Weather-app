@@ -43,7 +43,7 @@ pipeline {
         stage('Test') {
             steps {
                 // Run tests inside the Docker container
-                sh 'docker run --rm -e OPENWEATHERMAP_API_KEY=$API_KEY $DOCKER_IMAGE:$DOCKER_TAG pytest tests/'
+                sh 'docker run --rm -e OPENWEATHERMAP_API_KEY=$API_KEY $DOCKER_IMAGE:$DOCKER_TAG pytest app/tests/test_weather.py'
             }
         }
 
