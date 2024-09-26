@@ -62,14 +62,17 @@ pipeline {
         stage('Create Pull Request') {
             steps {
                 script {
-                    // Create the pull request from the feature branch to the main branch
-                    sh '''
-                    gh pr create --title "Auto-generated Pull Request" --body "Pull request created automatically by Jenkins." --base main --head feature/add-weather-feature
-                    '''
+                    // Use GH_TOKEN for GitHub authentication
+                    withCredentials([string(credentialsId: 'GH_TOKEN', variable: 'GH_TOKEN')]) {
+                        sh '''
+                        export GH_TOKEN=$GH_TOKEN
+                        gh pr create --title "Auto-generated Pull Request" --body "Pull request created automatically by Jenkins." --base main --head feature/add-weather-feature
+                        '''
+                    }
                 }
             }
         }
-    }
+
 
     post {
         always {
