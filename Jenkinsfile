@@ -2,24 +2,40 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = 'tolimacner/weather-app'   // Your Docker image name
-        DOCKER_TAG = "${env.BUILD_NUMBER}"        // Tag Docker image with build number
+        DOCKER_IMAGE = 'tolimacner/weather-app'   // Docker image name
         API_KEY = credentials('OPENWEATHERMAP_API_KEY')  // Sensitive API key for tests
-        DOCKER_USERNAME = 'your-dockerhub-username'   // DockerHub Username
-        DOCKER_PASSWORD = credentials('docker-hub-password')  // DockerHub Password stored as secret in Jenkins
+        DOCKER_USERNAME = 'tolimacner'   // DockerHub Username
+        DOCKER_PASSWORD = credentials('docker-hub-password')  // DockerHub Password stored in Jenkins
     }
 
     stages {
         stage('Checkout') {
             steps {
-                // Checkout the feature branch from a public repo
+                // Checkout the feature branch from the public GitHub repo
                 git branch: 'feature/add-weather-feature', url: 'https://github.com/tolimacner/Weather-app.git'
             }
         }
 
-        stage('Build') {
+        stage('Get Latest Docker Version') {
             steps {
-                // Build the Docker image
+                script {
+                    // Fetch the latest version tag from DockerHub
+                    def latestVersion = sh(script: '''
+                        curl -s https://registry.hub.docker.com/v1/repositories/tolimacner/weather-app/tags | jq -r '.[].name' | sort -V | tail -n 1
+                    ''', returnStdout: true).trim()
+
+                    // Extract the version number and increment it
+                    def newVersion = latestVersion.replaceAll('ver', '').toInteger() + 1
+                    env.DOCKER_TAG = "ver${newVersion}"
+
+                    echo "New Docker tag: ${env.DOCKER_TAG}"
+                }
+            }
+        }
+
+        stage('Build Docker Image') {
+            steps {
+                // Build the Docker image with the new version tag
                 sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
             }
         }
@@ -31,20 +47,20 @@ pipeline {
             }
         }
 
-        stage('Push to Docker Hub') {
+        stage('Push Docker Image to DockerHub') {
             steps {
-                // Authenticate and push Docker image
-                sh '''
-                echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin
-                docker push $DOCKER_IMAGE:$DOCKER_TAG
-                '''
+                script {
+                    // Log in to DockerHub and push the new image
+                    sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
+                    sh 'docker push $DOCKER_IMAGE:$DOCKER_TAG'
+                }
             }
         }
 
         stage('Create Pull Request') {
             steps {
                 script {
-                    // Push the branch back to GitHub and create a pull request
+                    // Create a pull request to the main branch using GitHub CLI
                     sh '''
                     git config --global user.email "you@example.com"
                     git config --global user.name "Your Name"
@@ -60,14 +76,8 @@ pipeline {
 
     post {
         always {
-            // Clean up Docker images after the job
+            // Clean up Docker system (optional)
             sh 'docker system prune -f'
-        }
-        success {
-            echo 'Pipeline completed successfully!'
-        }
-        failure {
-            echo 'Pipeline failed!'
         }
     }
 }
