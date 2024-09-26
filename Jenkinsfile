@@ -64,8 +64,8 @@ pipeline {
                 script {
                     // Push the branch back to GitHub and create a pull request
                     sh '''
-                    git config --global user.email "you@example.com"
-                    git config --global user.name "Your Name"
+                    git config --global user.email "tmacner@itset.co.il"
+                    git config --global user.name "tolimacner"
                     git add .
                     git commit -m "Auto-commit from Jenkins"
                     git push origin feature/add-weather-feature
