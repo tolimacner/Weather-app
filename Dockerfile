@@ -12,5 +12,6 @@ EXPOSE 5000
 
 ENV FLASK_ENV=production
 
+ENV PYTHONPATH=/app
 CMD ["python", "app/main.py"]
 
