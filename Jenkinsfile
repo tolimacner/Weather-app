@@ -1,13 +1,7 @@
 pipeline {
     agent any
-
-    stages {
-        stage('Clone Repo') {
-            steps {
-                git url: 'https://github.com/tolimacner/Weather-app.git', branch: 'main'
-            }
-        }
-
+            
+    stages {  
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t tolimacner/weather-app:ver4 .'
