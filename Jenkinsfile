@@ -1,60 +1,47 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_IMAGE = 'tolimacner/weather-app'  // Your Docker image name
-        DOCKER_TAG = 'latest'                   // Pull the latest image
-        APP_SERVER = 'your-app-server-ip'       // IP address or hostname of your app server
-        SSH_USER = 'ubuntu'                     // SSH user for app server
-        DOCKER_USERNAME = 'tolimacner'          // DockerHub Username
-        DOCKER_PASSWORD = credentials('docker-hub-password')  // DockerHub Password stored in Jenkins
-    }
-
     stages {
-        stage('Pull Latest Docker Image') {
+        stage('Clone Repo') {
             steps {
-                script {
-                    // Login to DockerHub and pull the latest Docker image
-                    sh 'echo $DOCKER_PASSWORD | docker login -u $DOCKER_USERNAME --password-stdin'
-                    sh "docker pull $DOCKER_IMAGE:$DOCKER_TAG"
-                }
+                git url: 'https://github.com/tolimacner/Weather-app.git', branch: 'main'
             }
         }
 
-        stage('Deploy to App Server') {
+        stage('Build Docker Image') {
             steps {
-                script {
-                    // Use SSH to connect to the app server and stop the old container, then start the new one
-                    sh """
-                    ssh -o StrictHostKeyChecking=no $SSH_USER@$APP_SERVER '
-                        docker stop weather-app || true
-                        docker rm weather-app || true
-                        docker pull $DOCKER_IMAGE:$DOCKER_TAG
-                        docker run -d --name weather-app -p 5000:5000 $DOCKER_IMAGE:$DOCKER_TAG
-                    '
-                    """
-                }
+                sh 'docker build -t tolimacner/weather-app:ver4 .'
             }
         }
 
-        stage('Verify Deployment') {
+        stage('Stop Old Container') {
             steps {
-                // Optional: Perform a simple check to verify the new version is running
-                script {
-                    sh """
-                    curl http://$APP_SERVER:5000/health || exit 1
-                    """
-                }
+                sh '''
+                docker stop weather-app || true
+                docker rm weather-app || true
+                '''
+            }
+        }
+
+        stage('Run New Container') {
+            steps {
+                sh 'docker run -d --name weather-app -p 5000:5000 --env-file .env tolimacner/weather-app:ver4'
+            }
+        }
+
+        stage('Verify App Running') {
+            steps {
+                sh 'curl http://localhost:5000 || exit 1'
             }
         }
     }
 
     post {
         success {
-            echo 'Deployment to production completed successfully.'
+            echo '✅ App deployed and running locally!'
         }
         failure {
-            echo 'Deployment to production failed!'
+            echo '❌ Something went wrong in deployment.'
         }
     }
 }
