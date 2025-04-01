@@ -24,10 +24,11 @@ pipeline {
         }
 
         stage('Verify App Running') {
-            steps {
-                sh 'curl http://localhost:5000 || exit 1'
+             steps {
+                 sh 'docker exec weather-app curl http://localhost:5000 || exit 1'
             }
         }
+
     }
 
     post {
