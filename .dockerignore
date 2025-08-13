@@ -1,0 +1,12 @@
+.git
+.env
+__pycache__/
+*.pyc
+.vscode/
+.idea/
+dist/
+build/
+*.log
+docker-compose.yml
+Jenkinsfile
+Jenkinsfileold1
