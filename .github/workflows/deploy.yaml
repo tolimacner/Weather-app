@@ -1,9 +1,9 @@
 name: CD - Deploy to ECS
 
 on:
-  # run only AFTER the build workflow completes (and still allow manual runs)
+  
   workflow_run:
-    workflows: ["CI - Build Docker Image"]   # must match build.yml `name`
+    workflows: ["CI - Build Docker Image"]   
     types: [completed]
   workflow_dispatch:
 
@@ -11,14 +11,14 @@ permissions:
   id-token: write
   contents: read
 
-# prevent overlapping deploys if multiple pushes happen quickly
+
 concurrency:
   group: ecs-deploy
   cancel-in-progress: true
 
 jobs:
   deploy:
-    # only deploy if the build succeeded AND the original event was a push
+    
     if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' }}
     runs-on: ubuntu-latest
     steps:
