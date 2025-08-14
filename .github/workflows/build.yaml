@@ -1,5 +1,5 @@
-name: CI – Build Docker Image
-run-name: CI – Build Docker Image
+name: CI - Build Docker Image
+run-name: CI - Build Docker Image
 
 on:
   pull_request:
