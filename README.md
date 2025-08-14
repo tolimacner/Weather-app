@@ -75,4 +75,3 @@ Once the application is running, you can enter a city name in the web interface,
 
 # CI/CD test Wed Aug 13 15:26:25 IDT 2025
 
-another one
